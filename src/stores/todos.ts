@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { IFormTodo, ITodo } from '@/types/todo.interface';
-import { Statuses, type TFilter } from '@/types/filters.type';
+import { type TFilter } from '@/types/filters.type';
 import { getTodos, store } from '@/api/todosApi';
 import { useLocalStorage } from '@vueuse/core';
 import { toast } from 'vue3-toastify';
@@ -25,33 +25,6 @@ export const useTodosStore = defineStore('todos', {
         byUserId: 'All Users',
         search: '',
       },
-    },
-  getters: {
-    filteredTodos(state) {
-      const { byStatus, byUserId, search } = state.filters;
-      const searchLower = search.toLowerCase();
-
-      let filtered = state.todos;
-      if (byStatus !== Statuses.ALL) {
-        filtered = filtered.filter((todo) => {
-          if (byStatus === Statuses.COMPLETED) return todo.completed;
-          if (byStatus === Statuses.UNCOMPLETED) return !todo.completed;
-          if (byStatus === Statuses.FAVORITES) return state.favorites.has(todo.id);
-          return true;
-        });
-      }
-
-      if (byUserId !== 'All Users') {
-        const userId = Number(byUserId);
-        filtered = filtered.filter((todo) => todo.userId === userId);
-      }
-
-      if (search) {
-        filtered = filtered.filter((todo) => todo.title.toLowerCase().includes(searchLower));
-      }
-
-      return filtered;
-    },
   },
   actions: {
     async fetchTodos() {

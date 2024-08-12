@@ -1,12 +1,39 @@
 <script setup lang="ts">
 import { useTodosStore } from '@/stores/todos';
 import { storeToRefs } from 'pinia';
-import { defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
+import { Statuses } from "@/types/filters.type";
 
 const TodoItem = defineAsyncComponent(() => import('@/components/Todo/TodoItem.vue'));
 
 const todosStore = useTodosStore();
-const { filteredTodos } = storeToRefs(todosStore);
+const { filters, todos, favorites } = storeToRefs(todosStore);
+
+const filteredTodos = computed(() => {
+  const { byStatus, byUserId, search } = filters.value;
+  const searchLower = search.toLowerCase();
+
+  let filtered = todos.value;
+  if (byStatus !== Statuses.ALL) {
+    filtered = filtered.filter((todo) => {
+      if (byStatus === Statuses.COMPLETED) return todo.completed;
+      if (byStatus === Statuses.UNCOMPLETED) return !todo.completed;
+      if (byStatus === Statuses.FAVORITES) return favorites.value.has(todo.id);
+      return true;
+    });
+  }
+
+  if (byUserId !== 'All Users') {
+    const userId = Number(byUserId);
+    filtered = filtered.filter((todo) => todo.userId === userId);
+  }
+
+  if (search) {
+    filtered = filtered.filter((todo) => todo.title.toLowerCase().includes(searchLower));
+  }
+
+  return filtered;
+})
 </script>
 
 <template>
