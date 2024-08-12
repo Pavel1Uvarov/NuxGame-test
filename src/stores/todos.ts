@@ -2,13 +2,13 @@ import { defineStore } from 'pinia';
 import type { IFormTodo, ITodo } from '@/types/todo.interface';
 import { type TFilter } from '@/types/filters.type';
 import { getTodos, store } from '@/api/todosApi';
-import { useLocalStorage } from '@vueuse/core';
+import { type RemovableRef, useLocalStorage } from '@vueuse/core';
 import { toast } from 'vue3-toastify';
 
 interface Store {
   todos: ITodo[];
   usersIds: number[];
-  favorites: Map<number, boolean>;
+  favorites: RemovableRef<number[]>;
   filters: TFilter;
 }
 
@@ -17,9 +17,7 @@ export const useTodosStore = defineStore('todos', {
     <Store>{
       todos: [],
       usersIds: [],
-      favorites: new Map(
-        useLocalStorage<number[]>('pinia/todos/user', []).value.map((id) => [id, true]),
-      ),
+      favorites: useLocalStorage<number[]>('pinia/todos/favorites', []),
       filters: {
         byStatus: 'All',
         byUserId: 'All Users',
@@ -57,13 +55,9 @@ export const useTodosStore = defineStore('todos', {
       this.filters = newFilters;
     },
     toggleFavorite(newFavorite: number) {
-      if (this.favorites.has(newFavorite)) {
-        this.favorites.delete(newFavorite);
-        toast('Item was removed from favorites.');
-      } else {
-        this.favorites.set(newFavorite, true);
-        toast('Item was added to favorites.');
-      }
+      const index = this.favorites.findIndex((f) => f === newFavorite)
+      index >= 0 ? this.favorites.splice(index, 1) : this.favorites.push(newFavorite)
+      toast(index >= 0 ? 'Item was removed from favorites.' : 'Item was added from favorites.')
     },
   },
 });

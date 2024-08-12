@@ -11,7 +11,7 @@ defineProps<{
 const todosStore = useTodosStore();
 const { favorites } = storeToRefs(todosStore);
 
-const isFavorite = (id: number) => favorites.value.has(id);
+const isFavorite = (id: number) => favorites.value.find(f => f == id);
 </script>
 
 <template>

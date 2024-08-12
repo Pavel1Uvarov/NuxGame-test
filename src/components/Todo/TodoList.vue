@@ -13,27 +13,19 @@ const filteredTodos = computed(() => {
   const { byStatus, byUserId, search } = filters.value;
   const searchLower = search.toLowerCase();
 
-  let filtered = todos.value;
-  if (byStatus !== Statuses.ALL) {
-    filtered = filtered.filter((todo) => {
-      if (byStatus === Statuses.COMPLETED) return todo.completed;
-      if (byStatus === Statuses.UNCOMPLETED) return !todo.completed;
-      if (byStatus === Statuses.FAVORITES) return favorites.value.has(todo.id);
-      return true;
-    });
-  }
+  return todos.value.filter((todo) => {
+    const statusMatches =
+        byStatus === Statuses.ALL ||
+        (byStatus === Statuses.COMPLETED && todo.completed) ||
+        (byStatus === Statuses.UNCOMPLETED && !todo.completed) ||
+        (byStatus === Statuses.FAVORITES && favorites.value.find(f => f === todo.id));
 
-  if (byUserId !== 'All Users') {
-    const userId = Number(byUserId);
-    filtered = filtered.filter((todo) => todo.userId === userId);
-  }
+    const userMatches = byUserId === 'All Users' || todo.userId === Number(byUserId);
+    const searchMatches = !search || todo.title.toLowerCase().includes(searchLower);
 
-  if (search) {
-    filtered = filtered.filter((todo) => todo.title.toLowerCase().includes(searchLower));
-  }
-
-  return filtered;
-})
+    return statusMatches && userMatches && searchMatches;
+  });
+});
 </script>
 
 <template>
